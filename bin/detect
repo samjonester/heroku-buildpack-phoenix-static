@@ -2,11 +2,11 @@
 
 mix_file_url="$1/mix.exs"
 echo $mix_file_url
-#
-# if [ -f $mix_file_url ];
-# then
-  echo "Phoenix"
-#   exit 0
-# else
-#   exit 1
-# fi
+
+
+if [ -f $mix_file_url ];
+then
+  echo "PBS: Found mix!"
+else
+  echo "PBS: Mix not found!"
+fi
