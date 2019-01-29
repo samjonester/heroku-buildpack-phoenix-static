@@ -1,7 +1,7 @@
 cleanup_cache() {
   if [ $clean_cache = true ]; then
-    info "clean_cache option set to true."
-    info "Cleaning out cache contents"
+    log_info "clean_cache option set to true."
+    log_info "Cleaning out cache contents"
     rm -rf $cache_dir/npm-version
     rm -rf $cache_dir/node-version
     rm -rf $cache_dir/phoenix-static
@@ -34,7 +34,7 @@ download_node() {
       echo "Unable to download node: $code" && false
     fi
   else
-    info "Using cached node ${node_version}..."
+    log_info "Using cached node ${node_version}..."
   fi
 }
 
@@ -45,7 +45,7 @@ cleanup_old_node() {
   # has the format "5.6.0"
 
   if [ $clean_cache = true ] || [ $old_node != v$node_version ] && [ -f $old_node_dir ]; then
-    info "Cleaning up old Node $old_node and old dependencies in cache"
+    log_info "Cleaning up old Node $old_node and old dependencies in cache"
     rm $old_node_dir
     rm -rf $cache_dir/node_modules
 
@@ -58,7 +58,7 @@ cleanup_old_node() {
 }
 
 install_node() {
-  info "Installing Node $node_version..."
+  log_info "Installing Node $node_version..."
   tar xzf ${cached_node} -C /tmp
   local node_dir=$heroku_dir/node
 
@@ -78,9 +78,9 @@ install_node() {
 install_npm() {
   # Optionally bootstrap a different npm version
   if [ ! $npm_version ] || [[ `npm --version` == "$npm_version" ]]; then
-    info "Using default npm version"
+    log_info "Using default npm version"
   else
-    info "Downloading and installing npm $npm_version (replacing version `npm --version`)..."
+    log_info "Downloading and installing npm $npm_version (replacing version `npm --version`)..."
     cd $build_dir
     npm install --unsafe-perm --quiet -g npm@$npm_version 2>&1 >/dev/null | indent
   fi
@@ -109,7 +109,7 @@ install_yarn() {
 }
 
 install_and_cache_deps() {
-  info "Installing and caching node modules"
+  log_info "Installing and caching node modules"
   cd $assets_dir
   if [ -d $cache_dir/node_modules ]; then
     mkdir -p node_modules
@@ -143,7 +143,7 @@ install_bower_deps() {
   local bower_json=bower.json
 
   if [ -f $bower_json ]; then
-    info "Installing and caching bower components"
+    log_info "Installing and caching bower components"
 
     if [ -d $cache_dir/bower_components ]; then
       mkdir -p bower_components
@@ -171,7 +171,7 @@ run_compile() {
 
   if [ $has_clean = 0 ]; then
     mkdir -p $cache_dir/phoenix-static
-    info "Restoring cached assets"
+    log_info "Restoring cached assets"
     mkdir -p priv
     rsync -a -v --ignore-existing $cache_dir/phoenix-static/ priv/static
   fi
@@ -179,23 +179,23 @@ run_compile() {
   cd $assets_dir
 
   if [ -f $custom_compile ]; then
-    info "Running custom compile"
+    log_info "Running custom compile"
     source $custom_compile 2>&1 | indent
   else
-    info "Running default compile"
+    log_info "Running default compile"
     source ${build_pack_dir}/${compile} 2>&1 | indent
   fi
 
   cd $phoenix_dir
 
   if [ $has_clean = 0 ]; then
-    info "Caching assets"
+    log_info "Caching assets"
     rsync -a --delete -v priv/static/ $cache_dir/phoenix-static
   fi
 }
 
 cache_versions() {
-  info "Caching versions for future builds"
+  log_info "Caching versions for future builds"
   echo `node --version` > $cache_dir/node-version
   echo `npm --version` > $cache_dir/npm-version
 }
@@ -209,14 +209,14 @@ finalize_node() {
 }
 
 write_profile() {
-  info "Creating runtime environment"
+  log_info "Creating runtime environment"
   mkdir -p $build_dir/.profile.d
   local export_line="export PATH=\"\$HOME/.heroku/node/bin:\$HOME/.heroku/yarn/bin:\$HOME/bin:\$HOME/$phoenix_relative_path/node_modules/.bin:\$PATH\""
   echo $export_line >> $build_dir/.profile.d/phoenix_static_buildpack_paths.sh
 }
 
 remove_node() {
-  info "Removing node and node_modules"
+  log_info "Removing node and node_modules"
   rm -rf $assets_dir/node_modules
   rm -rf $heroku_dir/node
 }
